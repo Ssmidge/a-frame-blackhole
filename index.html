@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adrian's Hackaccino thing</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="aframe-container">
+        <a-scene id="scene">
+            <a-sky color="#445463"></a-sky> 
+            <a-camera position="0 1.6 0"></a-camera>
+            <a-entity id="text" position="2.5 1.6 -4" text="font: mozillavr; width:12; value: The blackhole begins!"></a-entity>
+        </a-scene>
+    </div>
+    <script>
+        // RANDOM SPHERRES BECAUSE I CANNNNNNNNNNNNNNNNNNNNN
+        const sphereDiv = document.getElementById('scene');
+        const size = 5;  // amount of spheres that there's going to be on every face
+        const spacing = randomInBounds(0.5, 2);  // between spheres
+        // these are just to position the cube in front of the camera
+        const offsetX = 0;
+        const offsetY = 1.6;
+        const offsetZ = -10; 
+
+        // used for the blackhole part
+        const spheres = []; 
+        let centerSphere;
+
+        for (let x = 0; x < size; x++) {
+            for (let y = 0; y < size; y++) {
+                for (let z = 0; z < size; z++) {
+                    const sphere = document.createElement('a-sphere');
+                    const posX = (x - size / 2) * spacing + offsetX;
+                    const posY = (y - size / 2) * spacing + offsetY;
+                    const posZ = (z - size / 2) * spacing + offsetZ;
+
+                    if (x === Math.floor(size / 2) && y === Math.floor(size / 2) && z === Math.floor(size / 2)) {
+                        // BLACKHOLE!! OH NOES
+                        sphere.setAttribute('radius', "0.25");
+                        sphere.setAttribute('color', "black");
+                        centerSphere = sphere;
+                    } else {
+                        sphere.setAttribute('radius', "0.15");
+                        // thanks chatgpt for that number because for the life of me I couldn't make it work
+                        sphere.setAttribute('color', `#${Math.floor(Math.random() * 16777215).toString(16)}`);
+                    }
+
+                    sphere.setAttribute('position', `${posX} ${posY} ${posZ}`);
+                    sphereDiv.appendChild(sphere);
+                    spheres.push(sphere);
+                }
+            }
+        }
+
+        let radius = 0.25;
+        const growthRate = randomInBounds(0.01, 0.5);
+        const absorptionDistance = 2;
+
+        setTimeout(() => {
+            document.getElementById('text').setAttribute('text', 'value: The blackhole grows!');
+        }, 1000);
+        setTimeout(() => {
+            document.getElementById('text').setAttribute('text', 'value: The blackhole grows and absorbs!');
+        }, 3000);
+        setTimeout(() => {
+            document.getElementById('text').setAttribute('text', 'value: And now, we wait...');
+        }, 6000);
+        setTimeout(() => {
+            document.getElementById('scene').removeChild(document.getElementById('text'));
+        }, 7500);
+
+        setInterval(() => {
+            radius += growthRate;
+            centerSphere.setAttribute('radius', radius.toString());
+            for (let i = spheres.length - 1; i >= 0; i--) {
+                const sphere = spheres[i];
+                if (sphere !== centerSphere) {
+                    const position = sphere.getAttribute('position');
+                    const centerPos = centerSphere.getAttribute('position');
+                    const distance = Math.sqrt(Math.pow(position.x - centerPos.x, 2) + Math.pow(position.y - centerPos.y, 2) + Math.pow(position.z - centerPos.z, 2));
+                    const sphereRadius = parseFloat(sphere.getAttribute('radius'));
+
+                    // Check for collision by comparing distance with the sum of radii
+                    if (distance < radius + sphereRadius) {
+                        sphereDiv.removeChild(sphere);
+                        spheres.splice(i, 1);
+                    }
+                }
+            }
+
+            if (spheres.length <= 1) {
+                console.log('All spheres absorbed!');
+                document.getElementById('scene').appendChild(document.createElement('a-entity')).setAttribute('text', 'value: All spheres absorbed!; align: center; width: 12');
+                setTimeout(() => {
+                    location.reload();
+                }, 5000);
+
+            }
+        }, 1000);
+        
+        function randomInBounds(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+    </script>
+  </body>
+</html>
